@@ -94,7 +94,7 @@ Now run the app and you should see a blank view with **Hello world!** message ce
 
 The only view ready for you is the root view, the `ContentView`. You can see it contains only one view `Text` with the message. In SwiftUI a view will be centered by default both horizontally and vertically unless specified differently.
 
-Remember that in SwiftUI the views are composable. Simply initialize your view inside another View and it will be displayed within it. The views that accept views always have a result builder closure as the last parameter.
+Remember that in SwiftUI the views are composable. Simply initialize your view inside another View and it will be displayed within it. The views that accept views always have a result builder closure as their parameters.
 
 For example:
 
@@ -108,7 +108,9 @@ VStack {
 Or more complex:
 
 ```
-Button(action: { print("Hello world!") }) {
+Button {
+	print("Hello!")
+} label: {
 	Text("Hello world!")
 }
 ```
@@ -145,7 +147,7 @@ For now let's just add a Text view with **Feed** and **Profile** labels respecti
 
 Since we're going to need to use pushing and popping in these Views let's also wrap the Text views within the `TabView` in `NavigationView` so that we can do that later.
 
-For the tab items, system images named `house` and `person` are a good choice. `Image` view has a nice `init` that you can use. By the way... These [symbols](https://developer.apple.com/design/human-interface-guidelines/sf-symbols/overview/) and many more are provided by Apple for free!
+For the [tab items](https://developer.apple.com/documentation/swiftui/tabview), system images named `house` and `person` are a good choice. `Image` view has a nice `init` that you can use. By the way... These [symbols](https://developer.apple.com/design/human-interface-guidelines/sf-symbols/overview/) and many more are provided by Apple for free!
 
 The view hierarchy should look similar to this:
 
@@ -157,7 +159,9 @@ TabView
 		Text
 ```
 
-To add some bling let's apply `.accentColor(.black)` modifier to the whole `TabView` to have a nice black accent on the selected tab item.
+To add some bling, let's apply `.accentColor(.black)` modifier to the whole `TabView` to have a nice black accent on the selected tab item.
+
+While you're at it, let's also apply a `.font` modifier after the accent color to set the global font to be a system font of size 14.
 
 Now in `ContentView` replace `Text("Hello world!")` by your new `MainView()`.
 
@@ -193,7 +197,7 @@ The UI here is quite simple...
 
 Start by adding your `FeedView` into your `MainView` (replace the `Text`) so that it gets displayed. Provide `nil` as the `user` parameter's value.
 
-Typically you would use `List` view (an equivalent of `UITableview`) for this but currently there is no way of removing the separators (before iOS 15). Instead we will use a `ScrollView` with a `LazyVStack` while iterating over our content.
+Typically you would use `List` view (an equivalent of `UITableview`) for this but currently there is no way of removing the separators before iOS 15 and in general using `List` still has many limitations. Instead we will use a `ScrollView` with a `LazyVStack` while iterating over our content.
 
 Let's add a [ScrollView](https://developer.apple.com/documentation/swiftui/scrollview) as the the contents of the `body` (replacing the `Text`). If you don't specify axes in its initializer it will default to vertical scrolling.
 
@@ -299,7 +303,7 @@ The toolbar is basically just 4 icons next to each other. And by now you know ho
 
 Let's add an `HStack` with `spacing` of 20.
 
-In the `VStack` add 4 `Image`s with symbols **heart**, **message**, **paperplane** and **bookmark**.
+In the `HStack` add 4 `Image`s with symbols **heart**, **message**, **paperplane** and **bookmark**.
 
 To make the last image be pushed all the way to the trailing edge, add a `Spacer` view between the last two `Image`s.
 
@@ -439,12 +443,13 @@ I'm going to leave the coding to you but I'll give you a couple of hints:
 
 - All the data you need is available on the `User` object.
 - The spacing of the main `VStack` is 16.
-- The spacing of the `HStack` with statistics is 16.
+- The spacing of the `HStack` with statistics is 24.
 - The width and height of the `Image` is 80.
 - You need to apply two modifiers to the long text to size it properly:
   - `.fixedSize(horizontal: false, vertical: true)` 
   - `.frame(maxWidth: .infinity, alignment: .leading)`
 - You can use two Spacers to center content
+- Font weight of the bold statistics is `.semibold`
 
 In case you become lost, here's a little hint of what your view hierarchy should look like:
 
@@ -489,7 +494,6 @@ I'm going to give you a few hints again:
 - The image should have an aspect ratio of 1 with content mode of `.fit`.
 - The font of friend's name is `.caption`.
 - You should set a line limit of `1` for the `Text`.
-- `ScrollView` has an additional parameter called `showsIndicators` that should be set to `false`.
 
 In case you get lost, here's a little hint of what your view hierarchy should look like:
 
@@ -572,7 +576,7 @@ When you're finished the UI should look like the screenshot below.
 
 <img src="./tasks/9.png" alt="feed" style="zoom:30%;" />
 
-By know you probably know that this will be very easy in SwiftUI. And you're right!
+By now you probably know that this will be very easy in SwiftUI. And you're right!
 
 To implement this modal sheet we need to learn about one last piece of information about data storage in SwiftUI. That last piece of today's puzzle is the `@State` property wrapper.
 
@@ -584,13 +588,13 @@ Modal views in SwiftUI are displayed using the `.sheet` view modifier. This view
 
 This `sheet` view modifier (in our case) accepts one `Bool` parameter named `isPresented` that decides whether the sheet should be displayed or not. The parameter value is not just a value itself though. It is something called a `Binding` which is basically a two-way connection between a view and its underlying model. This two-way connection is needed as not only - in our case - must a sheet know when to display itself based on the `@State` property value... It also needs to set the value to `false` when user dismissed the sheet by dragging it down.
 
-To implement the sheet in our application we need to go to our `PostView` and a `@State` property named `photoIsPresented` with a default value of `false`. This will be the property that decides whether our sheet should be displayed.
+To implement the sheet in our application we need to go to our `PostView` and a `@State` property named `photoModalIsPresented` with a default value of `false`. This will be the property that decides whether our sheet should be displayed.
 
 Now wrap the `Image` in a `Button` view.
 
 A button in `SwiftUI` takes an `action` closure that defines what should happen when it's tapped and a view builder closure that defines the contents of the button (similar to other views we used today).
 
-Set the button's action to a closure containing one simple line of code: `photoIsPresented = true`.
+Set the button's action to a closure containing one simple line of code: `photoModalIsPresented = true`.
 
 Lastly apply a `sheet()` view modifier to the button and set its `isPresented` parameter to `$photoModalIsPresented`. Notice the dollar sign that is used to access the two-way binding.
 
@@ -620,9 +624,9 @@ There are two functions on it that are of interest to us:
 - `isLiked(post: Post) -> Bool` - to find whether a post is liked
 - `toggle(post: Post)` - to like and unlike a post
 
-The liking/unliking happens in our `PostView`. Let's first create the button.
+The liking/unliking happens in our `PostView`.
 
-First add the `@EnvironmentObject` property and call it `likedPostsStore`.
+First, add the `@EnvironmentObject` property and call it `likedPostsStore`.
 
 Now wrap the **heart** image in a button and make its action to call the `toggle` function on the store you just added.
 
@@ -634,29 +638,11 @@ Add the environment object and your app will work like a charm!
 
 Note: your previews will crash again. To fix this issue add the environment object to your previews as well for whichever view you're using the `@EnvironmentObject` property in.
 
-## 11. Bonus task #1
+## 11. Bonus task
 
 Try implementing a "bookmark" functionality. This will be very, very similar to "likes".
 Use the "Bookmark" icon all the way to the right below each post.
-
-## 12 Bonus task #2
-
-Are you done already? You either played with SwiftUI before or you're very fast. Either way...
-
-**NICE!**
-
-Let's add some asynchronicity.
-
-Go to `FeedStore`, comment out the `setUser` function and uncomment the other one that is currently commented out.
-
-Now run the app and see that there is a 5 second delay before the data is displayed.
-
-Your task is to implement a loading indicator view that is displayed while the data is "loading".
-
-A few hints (but just a few!):
-- There is a system component that you can use.
-- I prepared a `isLoading` property on a `FeedStore` for you.
-- You don't want to show the progress indicator within the ScrollView but rather either display the progress indicator (when loading) or the scroll view (when loaded).
+I would like you to duplicate the likes functionality with its own store and all related things.
 
 ## The end
 
